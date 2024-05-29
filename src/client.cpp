@@ -162,17 +162,14 @@ int main() {
     //readFromSocket();
     //setClipboardContent(buffer);
     while (true) {
-        if(strcmp(getClipboardContent().c_str(), clientData.c_str())) {
-            clientData = getClipboardContent();
-            writeToSocket(clientData.c_str());
-            std::cout << "get:" << clientData;
-        }
+        std::string data = getClipboardContent();
+        if(data != clientData) writeToSocket(clientData.c_str()); clientData = data;
+        std::cout << "get:" << clientData;
+
         readFromSocket();
         serverData = buffer;
-        if(strcmp(serverData.c_str(), clientData.c_str())) {
-            setClipboardContent(serverData);
-            clientData = serverData;
-            std::cout << "set:" << clientData;
-        }
+        
+        if(clientData != serverData) setClipboardContent(serverData); clientData = serverData;
+        std::cout << "set:" << clientData;
     }
 }

@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h> 
 
-std::string data_buffer = "aBoBa";
+std::string data_buffer = "";
 
 int main() {
 
