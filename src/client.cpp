@@ -111,12 +111,12 @@ void setClipboardContent(const std::string &text) {
     XCloseDisplay(display);
 }
 
-const char* get = "get?";
-const char* set = "set:";
+const char get[] = "get?";
+const char set[] = "set:";
 
 char buffer[1024] = { 0 };
 
-void readSocket() {
+void readFromSocket() {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in serverAddress;
@@ -136,7 +136,7 @@ void readSocket() {
 }
 
 
-void writeSocket(const char* data) {
+void writeToSocket(const char data[]) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in serverAddress;
@@ -146,12 +146,31 @@ void writeSocket(const char* data) {
 
     connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
 
-    send(clientSocket, data, strlen(data), 0);
+    std::string msg = set;
+    msg += data;
+
+    send(clientSocket, msg.c_str(), strlen(msg.c_str()), 0);
+    close(clientSocket);
 }
 
 
+std::string clientData = "";
+std::string serverData = "";
+
 
 int main() {
-    readSocket();
-    setClipboardContent(buffer);
+    //readFromSocket();
+    //setClipboardContent(buffer);
+    while (true) {
+        if(getClipboardContent() != clientData) {
+            clientData = getClipboardContent();
+            writeToSocket(clientData.c_str());
+        }
+        readFromSocket();
+        serverData = buffer;
+        if(serverData != clientData) {
+            setClipboardContent(serverData);
+            clientData = serverData;
+        }
+    }
 }
