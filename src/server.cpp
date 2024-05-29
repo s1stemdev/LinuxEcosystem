@@ -27,6 +27,8 @@ int main() {
 
     std::string data = buffer;
 
+    std::cout << buffer;
+
     if(data.rfind("set:", 0) == 0) {
         data_buffer = data;
 
