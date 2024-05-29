@@ -14,7 +14,7 @@ int main() {
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(5959);
-    serverAddress.sin_addr.s_addr = inet_addr("192.168.0.112"); //INADDR_ANY;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
 
     bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
 
@@ -31,17 +31,14 @@ int main() {
 
     if(data.rfind("set:", 0) == 0) {
         data_buffer = data;
-
-        close(clientSocket);
-        main();
     }
 
     if(data.rfind("get?", 0) == 0) {
         send(clientSocket, data_buffer.c_str(), sizeof(data_buffer.c_str()), 0);
-        
-        close(clientSocket);
-        main();
     }
+
+    close(clientSocket);
+    main();
     
 
 

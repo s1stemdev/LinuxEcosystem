@@ -159,17 +159,14 @@ std::string serverData = "";
 
 
 int main() {
-    //readFromSocket();
-    //setClipboardContent(buffer);
     while (true) {
         std::string data = getClipboardContent();
+        std::cout << "get:" << data;
         if(data != clientData) writeToSocket(clientData.c_str()); clientData = data;
-        std::cout << "get:" << clientData;
 
         readFromSocket();
         serverData = buffer;
-        
+        std::cout << "set:" << serverData;
         if(clientData != serverData) setClipboardContent(serverData); clientData = serverData;
-        std::cout << "set:" << clientData;
     }
 }
