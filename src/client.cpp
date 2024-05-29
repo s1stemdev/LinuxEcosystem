@@ -112,7 +112,7 @@ void setClipboardContent(const std::string &text) {
 const char get[] = "get?";
 const char set[] = "set:";
 
-void readFromSocket() {
+void readFromSocket(std::string &buffer) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0) {
         std::cerr << "Error creating socket\n";
@@ -132,11 +132,12 @@ void readFromSocket() {
 
     send(clientSocket, get, strlen(get), 0);
 
-    char buffer[1024] = { 0 };
-    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+    char recvBuffer[1024] = { 0 };
+    int bytesReceived = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
     if (bytesReceived < 0) {
         std::cerr << "Error receiving data\n";
     } else {
+        buffer = std::string(recvBuffer, bytesReceived);
         std::cout << "Received from server: " << buffer << std::endl;
     }
 
@@ -173,11 +174,23 @@ void writeToSocket(const std::string &data) {
 }
 
 int main() {
-    std::string clipboardData = getClipboardContent();
-    std::cout << "Clipboard data: " << clipboardData << std::endl;
-    
-    writeToSocket(clipboardData);
-    readFromSocket();
+    std::string previousClipboardData = "";
+
+    while (true) {
+        std::string clipboardData = getClipboardContent();
+        if (clipboardData != previousClipboardData) {
+            writeToSocket(clipboardData);
+            previousClipboardData = clipboardData;
+        }
+
+        std::string serverData;
+        readFromSocket(serverData);
+        if (!serverData.empty() && serverData != clipboardData) {
+            setClipboardContent(serverData);
+        }
+
+        sleep(1); // Pause to avoid excessive CPU usage
+    }
 
     return 0;
 }

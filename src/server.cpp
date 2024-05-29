@@ -48,7 +48,7 @@ int main() {
             continue;
         }
 
-        std::string data = buffer;
+        std::string data(buffer, bytesReceived);
         std::cout << "Received: " << data << std::endl;
 
         if (data.rfind("set:", 0) == 0) {
