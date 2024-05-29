@@ -1,12 +1,11 @@
 #include <iostream>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#include <cstring> 
-#include <iostream> 
-#include <netinet/in.h> 
-#include <sys/socket.h> 
+#include <cstring>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 std::string getClipboardContent() {
     Display *display = XOpenDisplay(nullptr);
@@ -52,7 +51,6 @@ std::string getClipboardContent() {
     XCloseDisplay(display);
     return result;
 }
-
 
 void setClipboardContent(const std::string &text) {
     Display *display = XOpenDisplay(nullptr);
@@ -131,42 +129,55 @@ void readFromSocket() {
     recv(clientSocket, buffer, sizeof(buffer), 0);
 
     close(clientSocket);
-
-
 }
-
 
 void writeToSocket(const char data[]) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket < 0) {
+        std::cerr << "Error creating socket\n";
+        return;
+    }
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(5959);
     serverAddress.sin_addr.s_addr = inet_addr("192.168.0.112");
 
-    connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
+        std::cerr << "Error connecting to server\n";
+        close(clientSocket);
+        return;
+    }
 
     std::string msg = set;
     msg += data;
 
-    send(clientSocket, msg.c_str(), strlen(msg.c_str()), 0);
+    if (send(clientSocket, msg.c_str(), msg.size(), 0) < 0) {
+        std::cerr << "Error sending data\n";
+    }
+
     close(clientSocket);
 }
-
 
 std::string clientData = "";
 std::string serverData = "";
 
-
 int main() {
     while (true) {
         std::string data = getClipboardContent();
-        std::cout << "get:" << data;
-        if(data != clientData) writeToSocket(clientData.c_str()); clientData = data;
+        std::cout << "get: " << data << std::endl;
+        if (data != clientData) {
+            clientData = data;
+            writeToSocket(clientData.c_str());
+        }
 
-        readFromSocket();
-        serverData = buffer;
-        std::cout << "set:" << serverData;
-        if(clientData != serverData) setClipboardContent(serverData); clientData = serverData;
+        // Uncomment these lines for reading data from server and setting clipboard content
+        // readFromSocket();
+        // serverData = buffer;
+        // std::cout << "set: " << serverData << std::endl;
+        // if (clientData != serverData) {
+        //     setClipboardContent(serverData);
+        //     clientData = serverData;
+        // }
     }
 }
